@@ -2,11 +2,11 @@
 import React from 'react'
 import DynamicPageHeader from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, EyeIcon, Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { ChevronLeft, ChevronRight, Search, Trash, } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import RegisterDetails from './registerDetailsModal'
+
 
 const servicesData = [
     { id: 1, name: "Caregiving", count: 10, date: "10/6/13", servicesName: "Caregiving", email: "caregiving@example.com", phoneNumber: "123-456-7890" },
@@ -15,19 +15,17 @@ const servicesData = [
     { id: 4, name: "Medical", count: 10, date: "10/6/13", servicesName: "Medical", email: "medical@example.com", phoneNumber: "123-456-7890" },
     { id: 5, name: "Drivers", count: 10, date: "10/6/13", servicesName: "Drivers", email: "drivers@example.com", phoneNumber: "123-456-7890" },
     { id: 6, name: "Tour Guide", count: 10, date: "10/6/13", servicesName: "Tour Guide", email: "tourguide@example.com", phoneNumber: "123-456-7890" },
-  
+
 ]
 
+const RevenueData = () => {
 
-const Registration = () => {
-
-    const [isOpen, setIsOpen] = React.useState(false);
 
     return (
         <div className=" min-h-screen">
             {/* Header Section */}
             <div className="flex px-8 py-4 justify-between items-start mb-8">
-                <DynamicPageHeader pageTitle="Registration Requests" />
+                <DynamicPageHeader pageTitle="Revenue" />
 
                 <div className="flex w-full max-w-sm items-center overflow-hidden rounded-lg border border-[#666666] focus-within:ring-1 focus-within:ring-ring">
                     {/* Search Input */}
@@ -78,14 +76,8 @@ const Registration = () => {
 
                                 <TableCell className="py-6 px-8">
                                     <div className="flex items-center justify-center gap-4">
-                                        <button className="text-white py-1 px-2 rounded-full bg-[#008000] hover:bg-[#008000]/80 transition-colors">
-                                            Approved
-                                        </button>
-                                        <button className="text-white py-1 px-2 rounded-full bg-[#F2415A] hover:bg-[#F2415A]/80 transition-colors">
-                                            Reject
-                                        </button>
-                                        <button onClick={() => setIsOpen(true)} className="text-white py-1 px-2 rounded-md bg-[#003366] hover:bg-[#003366]/80 transition-colors">
-                                            <EyeIcon className="w-5 h-5 text-white" />
+                                        <button className="text-white transition-colors">
+                                            <Trash className="w-5 h-5 text-[#BD0000]" />
                                         </button>
                                     </div>
                                 </TableCell>
@@ -121,9 +113,8 @@ const Registration = () => {
                     </div>
                 </div>
             </div>
-            <RegisterDetails isOpen={isOpen} setIsOpen={setIsOpen} />
         </div>
     )
 }
 
-export default Registration
+export default RevenueData
