@@ -5,8 +5,8 @@ import { PageHeader } from '../_components/PageHeader'
 const page = () => {
   return (
     <div>
-         <PageHeader/>
-        <ServicesPage/>
+      <PageHeader />
+      <ServicesPage />
     </div>
   )
 }

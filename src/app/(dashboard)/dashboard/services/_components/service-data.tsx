@@ -17,14 +17,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+
 import AddServiceModal from './add-component'
+import DynamicPageHeader from '@/components/PageHeader'
 
 const servicesData = [
   { id: 1, name: "Caregiving", count: 10, date: "10/6/13" },
@@ -42,22 +37,9 @@ export default function ServicesPage() {
     <div className=" min-h-screen">
       {/* Header Section */}
       <div className="flex px-8 py-4 justify-between items-start mb-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-slate-900">Services</h1>
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-slate-400">Dashboard</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-slate-400" />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/services" className="text-slate-400">Services</BreadcrumbLink>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <DynamicPageHeader pageTitle="Services" />
 
-        <Button onClick={()=>setIsOpen(true)} className="bg-[#00315C] hover:bg-[#00264d] text-white flex items-center gap-2 px-4 py-2 h-11">
+        <Button onClick={() => setIsOpen(true)} className="bg-[#00315C] hover:bg-[#00264d] text-white flex items-center gap-2 px-4 py-2 h-11">
           <Plus className="w-5 h-5" />
           Add Sub-Category Service
         </Button>
