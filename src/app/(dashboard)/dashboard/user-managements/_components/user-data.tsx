@@ -2,28 +2,44 @@
 import React from 'react'
 import DynamicPageHeader from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Search, Trash, } from 'lucide-react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
-
-const servicesData = [
-    { id: 1, name: "Caregiving", count: 10, date: "10/6/13", servicesName: "Caregiving", email: "caregiving@example.com", phoneNumber: "123-456-7890" },
-    { id: 2, name: "Cleaning", count: 10, date: "10/6/13", servicesName: "Cleaning", email: "cleaning@example.com", phoneNumber: "123-456-7890" },
-    { id: 3, name: "Tutoring", count: 10, date: "10/6/13", servicesName: "Tutoring", email: "tutoring@example.com", phoneNumber: "123-456-7890" },
-    { id: 4, name: "Medical", count: 10, date: "10/6/13", servicesName: "Medical", email: "medical@example.com", phoneNumber: "123-456-7890" },
-    { id: 5, name: "Drivers", count: 10, date: "10/6/13", servicesName: "Drivers", email: "drivers@example.com", phoneNumber: "123-456-7890" },
-    { id: 6, name: "Tour Guide", count: 10, date: "10/6/13", servicesName: "Tour Guide", email: "tourguide@example.com", phoneNumber: "123-456-7890" },
-
+const user = [
+    {
+        id: 1,
+        name: "John Carter",
+        totalBooking: 10,
+        completedbooking: 5,
+        pendingbooking: 5,
+        cancelledbooking: 0,
+    },
+    {
+        id: 2,
+        name: "Sophia Lee",
+        totalBooking: 10,
+        completedbooking: 5,
+        pendingbooking: 5,
+        cancelledbooking: 0,
+    },
+    {
+        id: 3,
+        name: "Haris Wikestion",
+        totalBooking: 10,
+        completedbooking: 5,
+        pendingbooking: 5,
+        cancelledbooking: 0,
+    },
 ]
 
-const RevenueData = () => {
+const UserData = () => {
     return (
         <div className=" min-h-screen">
             {/* Header Section */}
             <div className="flex px-8 py-4 justify-between items-start mb-8">
-                <DynamicPageHeader pageTitle="Revenue" />
+                <DynamicPageHeader pageTitle="User Managements" />
 
                 <div className="flex w-full max-w-sm items-center overflow-hidden rounded-lg border border-[#666666] focus-within:ring-1 focus-within:ring-ring">
                     {/* Search Input */}
@@ -47,17 +63,17 @@ const RevenueData = () => {
             {/* Table Section */}
             <div className="border-t border-[#B6B6B6] rounded-sm">
                 <Table >
-                    <TableHeader>
+                    <TableHeader className="">
                         <TableRow className="hover:bg-transparent border-[#B6B6B6] ">
-                            <TableHead className="py-4 font-bold px-8 text-slate-800"> Name </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Services Name </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Email </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Phone Number </TableHead>
+                            <TableHead className="py-4 font-bold px-8 text-slate-800"> User Name  </TableHead>
+                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Total Booking </TableHead>
+                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Completed booking </TableHead>
+                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Cancel Booking </TableHead>
                             <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Action </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {servicesData.map((service) => (
+                        {user.map((service) => (
                             <TableRow key={service.id} className="border-b border-[#B6B6B6]">
                                 <TableCell className="py-6 font-medium px-8 text-slate-700">
                                     <div className="flex items-center gap-4">
@@ -65,17 +81,16 @@ const RevenueData = () => {
                                             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                                             <AvatarFallback>SC</AvatarFallback>
                                         </Avatar>
-                                        {service.name}
+                                        {service?.name}
                                     </div>
                                 </TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.email}</TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.phoneNumber}</TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">10.06.2023</TableCell>
-
+                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.totalBooking}</TableCell>
+                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.completedbooking}</TableCell>
+                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.cancelledbooking}</TableCell>
                                 <TableCell className="py-6 px-8">
                                     <div className="flex items-center justify-center gap-4">
-                                        <button className="text-white transition-colors">
-                                            <Trash className="w-5 h-5 text-[#BD0000]" />
+                                        <button className="text-white py-1 px-2 text-[12px] rounded-md bg-[#003366] hover:bg-[#003366]/80 transition-colors">
+                                            Details
                                         </button>
                                     </div>
                                 </TableCell>
@@ -115,4 +130,4 @@ const RevenueData = () => {
     )
 }
 
-export default RevenueData
+export default UserData
