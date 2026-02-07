@@ -19,8 +19,6 @@ const servicesData = [
 ]
 
 const RevenueData = () => {
-
-
     return (
         <div className=" min-h-screen">
             {/* Header Section */}
@@ -49,7 +47,7 @@ const RevenueData = () => {
             {/* Table Section */}
             <div className="border-t border-[#B6B6B6] rounded-sm">
                 <Table >
-                    <TableHeader className="">
+                    <TableHeader>
                         <TableRow className="hover:bg-transparent border-[#B6B6B6] ">
                             <TableHead className="py-4 font-bold px-8 text-slate-800"> Name </TableHead>
                             <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Services Name </TableHead>
