@@ -158,6 +158,7 @@ const UpdatePassword = () => {
 
           {/* Actions */}
           <div className="flex justify-end gap-3 mt-6">
+
             <Button
               type="button"
               variant="outline"
