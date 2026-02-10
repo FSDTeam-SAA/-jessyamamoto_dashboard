@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";               // ✅ added
+import { useRouter } from "next/navigation"; // ✅ added
+import { useSession } from "next-auth/react";
 
 const passwordSchema = z
   .object({
@@ -23,10 +27,50 @@ const passwordSchema = z
 type PasswordForm = z.infer<typeof passwordSchema>;
 
 const UpdatePassword = () => {
+  const session = useSession()
+  const token = session?.data?.user.accessToken || "";
+
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
     confirm: false,
+  });
+
+  const router = useRouter();
+
+  const { mutate, isPending } = useMutation({
+    mutationKey: ["change-password"],
+    mutationFn: async ({
+      oldPassword,
+      newPassword,
+    }: {
+      oldPassword: string;
+      newPassword: string;
+    }) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/change-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ oldPassword, newPassword }),
+        }
+      );
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (!data?.success) {
+        toast.error(data?.message || "Something went wrong.");
+        return;
+      }
+      toast.success(data?.message || "Password changed successfully!");
+      router.push("/login");
+    },
+    onError: () => {
+      toast.error("Something went wrong. Please try again.");
+    },
   });
 
   const {
@@ -38,8 +82,12 @@ const UpdatePassword = () => {
     resolver: zodResolver(passwordSchema),
   });
 
+  // ✅ handled submit
   const onSubmit = (data: PasswordForm) => {
-    console.log("Change Password Payload 👉", data);
+    mutate({
+      oldPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
   };
 
   const togglePasswordVisibility = (
@@ -52,7 +100,7 @@ const UpdatePassword = () => {
   };
 
   return (
-    <div className="  min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="mb-6 p-6">
         <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
@@ -62,7 +110,7 @@ const UpdatePassword = () => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="bg-[#E6EBF0]  border-t border-b border-[#003366] p-6">
+        <div className="bg-[#E6EBF0] border-t border-b border-[#003366] p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">
             Change Password
           </h2>
@@ -156,22 +204,18 @@ const UpdatePassword = () => {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-3 mt-6">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                reset();
-                console.log("Password form reset");
-              }}
+              onClick={() => reset()}
               className="border-red-300 text-red-600"
             >
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
 
-            <Button type="submit" className="bg-[#003366] text-white">
+            <Button type="submit" disabled={isPending} className="bg-[#003366] text-white">
               <Save className="h-4 w-4 mr-2" />
               Save
             </Button>

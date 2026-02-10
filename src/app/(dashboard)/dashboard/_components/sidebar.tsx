@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 
 const navigation = [
   { name: "Dashboard Overview", href: "/dashboard", icon: LayoutPanelLeft },
@@ -42,6 +43,7 @@ export function DashboardSidebar() {
   const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
+    signOut({ callbackUrl: "/" });
     setOpen(false);
   };
 
@@ -107,7 +109,7 @@ export function DashboardSidebar() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleLogout}>
+            <Button  variant="destructive" onClick={handleLogout}>
               Logout
             </Button>
           </DialogFooter>
