@@ -42,7 +42,7 @@ const earningsData = [
 const earningsConfig = {
   earnings: {
     label: "Earnings",
-    color: "hsl(221.2 83.2% 53.3%)", 
+    color: "hsl(221.2 83.2% 53.3%)",
   },
 } satisfies ChartConfig
 
@@ -58,7 +58,7 @@ const bookingData = [
 export default function DashboardCharts() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ">
-      
+
       {/* --- Earnings Overview Chart (Left) --- */}
       <Card className="lg:col-span-2 border-none shadow-sm">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-10">
@@ -90,7 +90,7 @@ export default function DashboardCharts() {
                 className="text-xs text-muted-foreground"
               />
               <ChartTooltip
-              
+
                 cursor={false}
                 content={<ChartTooltipContent className="w-32 " hideLabel indicator="dot" />}
               />
@@ -99,7 +99,7 @@ export default function DashboardCharts() {
                 dataKey="earnings"
                 stroke="#00315C"
                 strokeWidth={2}
-                fill="#F8FAFC" // Soft light fill to match image background
+                fill="#F8FAFC"
                 fillOpacity={0.8}
               />
             </AreaChart>
@@ -143,13 +143,13 @@ export default function DashboardCharts() {
                 </Pie>
               </PieChart>
             </ChartContainer>
-            
+
             {/* Custom Legend to match image */}
             <div className="grid grid-cols-3 gap-x-4 gap-y-3 mt-8 w-full px-2">
               {bookingData.concat(bookingData).slice(0, 9).map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <div 
-                    className="h-3 w-3 rounded-full" 
+                  <div
+                    className="h-3 w-3 rounded-full"
                     style={{ backgroundColor: item.fill }}
                   />
                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">

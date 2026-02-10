@@ -1,63 +1,173 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Save, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSession } from "next-auth/react";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface PersonalInfoForm {
   fullName: string;
   lastName: string;
   phoneNumber: string;
   email: string;
-  dateOfBirth: string;
-  address: string;
   profileImage: string;
 }
 
 const PersonalInformation = () => {
+  const session = useSession();
+  const token = session?.data?.user?.accessToken || "";
+  const userId = session?.data?.user?.id;
+
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState<PersonalInfoForm>({
-    fullName: "John",
-    lastName: "Doe",
-    email: "john.doe@email.com",
-    phoneNumber: "+880 1234 567890",
-    dateOfBirth: "1998-06-15",
-    address: "Dhaka, Bangladesh",
+    fullName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
     profileImage: "/placeholder.svg",
   });
 
-  const [originalData] = useState(formData);
+  const [originalData, setOriginalData] =
+    useState<PersonalInfoForm | null>(null);
+
+  /* ================= FETCH PROFILE ================= */
+  const { data } = useQuery({
+    queryKey: ["user-profile", userId],
+    enabled: !!userId && !!token,
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      return res.json();
+    },
+  });
+
+
+  useEffect(() => {
+    if (data?.data) {
+      const user = data.data;
+
+      const mapped = {
+        fullName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phoneNumber: user.phone || "",
+        profileImage: user.profileImage || "/placeholder.svg",
+      };
+
+      setFormData(mapped);
+      setOriginalData(mapped);
+    }
+  }, [data]);
+
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("profileImage", file);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!res.ok) throw new Error("Image update failed");
+      return res.json();
+    },
+    onSuccess: (res) => {
+      toast.success("Profile image updated");
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+
+      if (res?.data?.profileImage) {
+        setFormData((prev) => ({
+          ...prev,
+          profileImage: res.data.profileImage,
+        }));
+      }
+    },
+    onError: () => {
+      toast.error("Failed to update profile image");
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+    }) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!res.ok) throw new Error("Profile update failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+    onError: () => {
+      toast.error("Failed to update profile");
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted Data 👉", formData);
+
+    updateProfileMutation.mutate({
+      firstName: formData.fullName,
+      lastName: formData.lastName,
+      phone: formData.phoneNumber,
+    });
   };
 
   const handleCancel = () => {
-    console.log("Cancelled. Previous Data 👉", originalData);
-    setFormData(originalData);
+    if (originalData) setFormData(originalData);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({
-        ...prev,
-        profileImage: reader.result as string,
-      }));
-      console.log("Selected Image 👉", file);
-    };
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      profileImage: previewUrl,
+    }));
+    updateProfileImageMutation.mutate(file);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Setting</h1>
         <div className="flex gap-2 mt-2 text-sm text-gray-500">
@@ -69,19 +179,28 @@ const PersonalInformation = () => {
         </div>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-white rounded-lg border p-6 mb-6">
+      <div className="bg-white rounded-lg border p-6 mb-6 relative">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={formData.profileImage} />
-              <AvatarFallback>
-                {formData.fullName
-                  .split(" ")
-                  .map(n => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-4 relative">
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={formData.profileImage} />
+                <AvatarFallback>
+                  {formData.fullName
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+
+              {/* Loading overlay */}
+              {updateProfileImageMutation.isPending && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
+                  <div className="animate-spin border-4 border-white border-t-transparent rounded-full h-10 w-10"></div>
+                </div>
+              )}
+            </div>
 
             <div>
               <h2 className="text-lg font-semibold">
@@ -104,7 +223,7 @@ const PersonalInformation = () => {
               onClick={() =>
                 document.getElementById("profileImage")?.click()
               }
-              className="bg-[#003366]/80 text-white hover:bg-[#003366] transition-colors"
+              className="bg-[#003366]/80 text-white hover:bg-[#003366]"
             >
               <Upload className="h-4 w-4 mr-2" />
               Update Profile
@@ -113,7 +232,6 @@ const PersonalInformation = () => {
         </div>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-lg border p-6">
           <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -138,13 +256,16 @@ const PersonalInformation = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <Label>Phone Number</Label>
               <Input
                 value={formData.phoneNumber}
                 onChange={(e) =>
-                  setFormData({ ...formData, phoneNumber: e.target.value })
+                  setFormData({
+                    ...formData,
+                    phoneNumber: e.target.value,
+                  })
                 }
               />
             </div>
@@ -154,32 +275,8 @@ const PersonalInformation = () => {
               <Input value={formData.email} disabled />
             </div>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <Label>Date of Birth</Label>
-              <Input
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={(e) =>
-                  setFormData({ ...formData, dateOfBirth: e.target.value })
-                }
-              />
-            </div>
-
-            <div>
-              <Label>Address</Label>
-              <Input
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
-            </div>
-          </div>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3">
           <Button
             type="button"
