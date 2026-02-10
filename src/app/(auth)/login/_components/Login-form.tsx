@@ -35,7 +35,7 @@ export default function LoginPage() {
       setValue("email", savedEmail);
       setValue("remember", true);
     }
-  }, []);
+  }, [ setValue ]);
 
 
 
