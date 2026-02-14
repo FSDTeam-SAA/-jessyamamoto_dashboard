@@ -18,7 +18,7 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog"
-import { Meta, User, UserResponse } from '../../../../../../types/userdatatype'
+import { Meta, User, UserResponse } from '../../../../../types/userdatatype'
 
 const UserData = () => {
     const session = useSession()

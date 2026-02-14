@@ -1,118 +1,218 @@
 "use client"
-import React from 'react'
-import DynamicPageHeader from '@/components/PageHeader'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Search, Trash, } from 'lucide-react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
+import React, { useState } from "react"
+import DynamicPageHeader from "@/components/PageHeader"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight, Search } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useSession } from "next-auth/react"
+import { useQuery } from "@tanstack/react-query"
+import { PaymentResponse } from "@/types/paymentdata"
 
-const servicesData = [
-    { id: 1, name: "Caregiving", count: 10, date: "10/6/13", servicesName: "Caregiving", email: "caregiving@example.com", phoneNumber: "123-456-7890" },
-    { id: 2, name: "Cleaning", count: 10, date: "10/6/13", servicesName: "Cleaning", email: "cleaning@example.com", phoneNumber: "123-456-7890" },
-    { id: 3, name: "Tutoring", count: 10, date: "10/6/13", servicesName: "Tutoring", email: "tutoring@example.com", phoneNumber: "123-456-7890" },
-    { id: 4, name: "Medical", count: 10, date: "10/6/13", servicesName: "Medical", email: "medical@example.com", phoneNumber: "123-456-7890" },
-    { id: 5, name: "Drivers", count: 10, date: "10/6/13", servicesName: "Drivers", email: "drivers@example.com", phoneNumber: "123-456-7890" },
-    { id: 6, name: "Tour Guide", count: 10, date: "10/6/13", servicesName: "Tour Guide", email: "tourguide@example.com", phoneNumber: "123-456-7890" },
+// ✅ simple debounce hook
+function useDebounce(value: string, delay = 500) {
+  const [debounced, setDebounced] = React.useState(value)
 
-]
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+
+  return debounced
+}
+
+const LIMIT = 10
 
 const RevenueData = () => {
-    return (
-        <div className=" min-h-screen">
-            {/* Header Section */}
-            <div className="flex px-8 py-4 justify-between items-start mb-8">
-                <DynamicPageHeader pageTitle="Revenue" />
+  const session = useSession()
+  const token = session?.data?.user?.accessToken || ""
+  const userId = session?.data?.user?.id
 
-                <div className="flex w-full max-w-sm items-center overflow-hidden rounded-lg border border-[#666666] focus-within:ring-1 focus-within:ring-ring">
-                    {/* Search Input */}
-                    <Input
-                        type="text"
-                        placeholder="Search by Category Name"
-                        className="border-0 bg-transparent py-6 text-gray-500 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    />
+  // ✅ states
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState("")
 
-                    {/* Search Button */}
-                    <Button
-                        type="submit"
-                        size="icon"
-                        className="h-12 w-16 rounded-none bg-[#003366] hover:bg-[#002855] transition-colors"
-                    >
-                        <Search className="h-5 w-5 text-white" />
-                    </Button>
-                </div>
-            </div>
+  const debouncedSearch = useDebounce(search, 500)
 
-            {/* Table Section */}
-            <div className="border-t border-[#B6B6B6] rounded-sm">
-                <Table >
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent border-[#B6B6B6] ">
-                            <TableHead className="py-4 font-bold px-8 text-slate-800"> Name </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Services Name </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Email </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Phone Number </TableHead>
-                            <TableHead className="py-4 font-bold px-8 text-slate-800 text-center"> Action </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {servicesData.map((service) => (
-                            <TableRow key={service.id} className="border-b border-[#B6B6B6]">
-                                <TableCell className="py-6 font-medium px-8 text-slate-700">
-                                    <div className="flex items-center gap-4">
-                                        <Avatar className="h-9 w-9">
-                                            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                                            <AvatarFallback>SC</AvatarFallback>
-                                        </Avatar>
-                                        {service.name}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.email}</TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">{service.phoneNumber}</TableCell>
-                                <TableCell className="py-6 text-center px-8 text-slate-600">10.06.2023</TableCell>
+  // ✅ query
+  const { data, isLoading } = useQuery<PaymentResponse>({
+    queryKey: ["revenue", page, debouncedSearch],
+    enabled: !!userId && !!token,
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/payment?page=${page}&limit=${LIMIT}&searchTerm=${debouncedSearch}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      if (!res.ok) throw new Error("Failed to fetch revenue")
+      return res.json()
+    },
+  })
 
-                                <TableCell className="py-6 px-8">
-                                    <div className="flex items-center justify-center gap-4">
-                                        <button className="text-white transition-colors">
-                                            <Trash className="w-5 h-5 text-[#BD0000]" />
-                                        </button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+  // ✅ pagination calc
+  const totalPages = Math.ceil((data?.meta?.total || 0) / LIMIT)
 
-                {/* Pagination Section */}
-                <div className="flex items-center justify-between px-6 py-4 border-t bg-[#FFFFFF]">
-                    <p className="text-sm text-slate-500">
-                        Showing 1 to 5 of 12 results
-                    </p>
-                    <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 text-slate-400 bg-slate-50 border-slate-200">
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="default" size="sm" className="h-8 w-8 bg-[#00315C] text-white">
-                            1
-                        </Button>
-                        {[2, 3].map((page) => (
-                            <Button key={page} variant="outline" size="sm" className="h-8 w-8 border-slate-200 text-slate-600">
-                                {page}
-                            </Button>
-                        ))}
-                        <span className="px-2 text-slate-400 text-sm">...</span>
-                        <Button variant="outline" size="sm" className="h-8 w-8 border-slate-200 text-slate-600">
-                            8
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 text-slate-600 border-slate-200">
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
+  const handlePrev = () => {
+    if (page > 1) setPage((p) => p - 1)
+  }
+
+  const handleNext = () => {
+    if (page < totalPages) setPage((p) => p + 1)
+  }
+
+  return (
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="flex px-8 py-4 justify-between items-start mb-8">
+        <DynamicPageHeader pageTitle="Revenue" />
+
+        {/* ✅ Search */}
+        <div className="flex w-full max-w-sm items-center overflow-hidden rounded-lg border border-[#666666] focus-within:ring-1 focus-within:ring-ring">
+          <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1) // reset page on search
+            }}
+            type="text"
+            placeholder="Search by user name or email"
+            className="border-0 bg-transparent py-6 text-gray-500 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            type="button"
+            size="icon"
+            className="h-12 w-16 rounded-none bg-[#003366] hover:bg-[#002855]"
+          >
+            <Search className="h-5 w-5 text-white" />
+          </Button>
         </div>
-    )
+      </div>
+
+      {/* Table */}
+      <div className="border-t border-[#B6B6B6] rounded-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent border-[#B6B6B6]">
+              <TableHead className="py-4 font-bold px-8 text-slate-800">
+                Name
+              </TableHead>
+              <TableHead className="py-4 font-bold px-8 text-center">
+                Service
+              </TableHead>
+              <TableHead className="py-4 font-bold px-8 text-center">
+                Email
+              </TableHead>
+              <TableHead className="py-4 font-bold px-8 text-center">
+                Amount
+              </TableHead>
+              <TableHead className="py-4 font-bold px-8 text-center">
+                Status
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isLoading && data?.data?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10">
+                  No revenue found
+                </TableCell>
+              </TableRow>
+            )}
+
+            {data?.data?.map((item) => {
+              const user = item.user
+
+              return (
+                <TableRow key={item._id}>
+                  <TableCell className="py-6 font-medium px-8">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage
+                          src={`https://ui-avatars.com/api/?name=${user?.firstName || "U"}`}
+                        />
+                        <AvatarFallback>
+                          {user?.firstName?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      {user
+                        ? `${user.firstName} ${user.lastName}`
+                        : "Unknown User"}
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="text-center">
+                    {item.paymentType}
+                  </TableCell>
+
+                  <TableCell className="text-center">
+                    {user?.email || "—"}
+                  </TableCell>
+
+                  <TableCell className="text-center">
+                    {item.amount} {item.currency}
+                  </TableCell>
+
+                  <TableCell className="text-center capitalize">
+                    {item.status}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+
+        {/* ✅ Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
+          <p className="text-sm text-slate-500">
+            Page {page} of {totalPages || 1}
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handlePrev}
+              disabled={page === 1}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <Button
+              onClick={handleNext}
+              disabled={page === totalPages || totalPages === 0}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default RevenueData

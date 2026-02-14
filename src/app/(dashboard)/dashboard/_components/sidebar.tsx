@@ -13,7 +13,6 @@ import {
   MonitorCog,
   DollarSign,
   Calendar,
-  HandCoins,
 } from "lucide-react";
 
 import {
@@ -34,7 +33,6 @@ const navigation = [
   { name: "Revenue", href: "/dashboard/revenue", icon: DollarSign },
   { name: "Bookings", href: "/dashboard/bookings", icon: Calendar },
   { name: "User Managements", href: "/dashboard/user-managements", icon: User2 },
-  { name: "Commission", href: "/dashboard/commission", icon: HandCoins },
   { name: "Settings", href: "/dashboard/setting", icon: Settings },
 ];
 
@@ -109,7 +107,7 @@ export function DashboardSidebar() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button  variant="destructive" onClick={handleLogout}>
+            <Button variant="destructive" onClick={handleLogout}>
               Logout
             </Button>
           </DialogFooter>
