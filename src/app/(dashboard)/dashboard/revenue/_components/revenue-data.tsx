@@ -87,7 +87,7 @@ const RevenueData = () => {
               setPage(1) // reset page on search
             }}
             type="text"
-            placeholder="Search by user name or email"
+            placeholder="Search by email"
             className="border-0 bg-transparent py-6 text-gray-500 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <Button
