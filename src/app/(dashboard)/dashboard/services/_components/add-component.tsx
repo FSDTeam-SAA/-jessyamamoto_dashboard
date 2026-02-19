@@ -118,7 +118,7 @@ export default function AddServiceModal({
     const editMutation = useMutation({
         mutationFn: async (formData: FormData) => {
             const fd = new FormData()
-            fd.append("dname", formData.dname)
+            fd.append("name", formData.dname)
 
             const file = formData.image?.[0]
             if (file) fd.append("image", file)
